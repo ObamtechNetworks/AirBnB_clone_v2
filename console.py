@@ -166,6 +166,9 @@ class HBNBCommand(cmd.Cmd):
                             elif value.isdigit() or value.startswith('-'):
                                 # convert to an integer
                                 value = int(value)
+                            elif value.startswith('"') and value.endswith('"'):
+                                # remove all occurrence of double quotes
+                                value = value.replace('"', '') 
                             # set key-value pair to the dictionary
                             cls_attr[key] = value
                         except Exception as e:

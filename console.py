@@ -154,26 +154,37 @@ class HBNBCommand(cmd.Cmd):
                         try:
                             # split into key value pairs based on the =
                             key, value = pair.split('=')
-                            # check if _ is in key and replace with space
-                            if '_' in key:
-                                key = key.replace('_', ' ')
-                            if '.' in value:
-                                try:
-                                    # convert to float
-                                    value = float(value)
-                                except Exception as e:
-                                    print(str(e))
-                            elif value.isdigit() or value.startswith('-'):
-                                # convert to an integer
-                                value = int(value)
-                            elif value.startswith('"') and value.endswith('"'):
-                                # remove all occurrence of double quotes
-                                value = value.replace('"', '') 
-                            # set key-value pair to the dictionary
-                            cls_attr[key] = value
+
+                            # Check if the key is not empty
+                            if key.strip():
+
+                                # check if _ is in key and replace with space
+                                if '_' in key:
+                                    key = key.replace('_', ' ')
+                                if '.' in value:
+                                    try:
+                                        # convert to float
+                                        value = float(value)
+                                    except Exception as e:
+                                        print(str(e))
+                                        pass
+                                elif value.isdigit() or (
+                                        value.startswith('-') and
+                                        value[1:].isdigit()
+                                        ):
+                                    # convert to an integer
+                                    value = int(value)
+                                elif value.startswith(
+                                        '"') and value.endswith('"'):
+                                    # remove all occurrence of double quotes
+                                    value = value.replace('"', '')
+                                # set key-value pair to the dictionary
+                                cls_attr[key] = value
+                            else:
+                                return
                         except Exception as e:
                             print(str(e))
-                            pass
+                            return
                 # create instance of the given class
                 instance = HBNBCommand.classes[cls_name]()
 

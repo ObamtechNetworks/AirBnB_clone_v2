@@ -21,9 +21,9 @@ class HBNBCommand(cmd.Cmd):
 
     classes = {
             'BaseModel': BaseModel, 'User': User, 'Place': Place,
-               'State': State, 'City': City, 'Amenity': Amenity,
-               'Review': Review
-              }
+            'State': State, 'City': City, 'Amenity': Amenity,'Review': Review
+            }
+
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
              'number_rooms': int, 'number_bathrooms': int,
@@ -120,26 +120,53 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        try:
-            if not args:
-                raise SyntaxError()
-            argument_list = args.split(" ")
-            key_name = {}
-            for arg in argument_list[1:]:
-                arg_value = arg.split("=")
-                arg_value[1] = eval(arg_value[1])
-                if type(arg_value[1]) is str:
-                    arg_value[1] = arg_value[1].replace("_", " ").replace('"', '\\"')
-                key_name[arg_value[0]] = arg_value[1]
-        except SyntaxError:
+        if not args:
             print("** class name missing **")
             return
-        except NameError:
+
+        #Split arguments
+        argument_list = []
+        current_arg = ''
+        is_quoted = False
+
+        for given_value in args:
+            if given_value == ' ' and not is_quoted:
+                argument_list.append(current_arg)
+                current_arg = ''
+            elif given_value == '"':
+                is_quoted = not is_quoted
+            else:
+                current_arg += given_value
+
+        if current_arg:
+            argument_list.append(current_arg)
+
+        key_name = argument_list[0]
+
+        if key_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[argument_list[0]](**key_name)
-        new_instance.save()
+
+        #<key name>=<value>
+        key_values = {}
+        for item in argument_list[1:]:
+            try:
+                key, value = item.split('=')
+
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace('_', ' ')
+                elif '.' in value:
+                    value = float(value)
+                else:
+                    value = int(value)
+                key_values[key] = value
+            except ValueError:
+                pass
+
+        new_instance = HBNBCommand.classes[key_name](**key_values)
+        storage.save()
         print(new_instance.id)
+        storage.save()
 
     def help_create(self):
         """ Help information for the create method """

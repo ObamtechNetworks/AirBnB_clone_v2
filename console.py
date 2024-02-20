@@ -122,13 +122,77 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-        new_instance = HBNBCommand.classes[args]()
-        storage.save()
-        print(new_instance.id)
-        storage.save()
+        if len(args.split()) == 1:
+            # check if args is in class list
+            if args not in HBNBCommand.classes:
+                print("** class doesn't exist **")
+                return
+            else:
+                new_instance = HBNBCommand.classes[args]()
+                storage.save()
+                print(new_instance.id)
+                # storage.save()
+        else:
+            # split the args by spaces
+            params = args.split()
+            # extract the class from the list
+            cls_name = params[0]
+            # check if class is in class list before proceeding further
+            if cls_name not in HBNBCommand.classes:
+                print("** class doesn't exist **")
+                return
+            else:
+                # set other parts ready as key_value_pairs
+                key_value_pairs = params[1:]
+                # print(f"KEYVALUE PAIRS:   {key_value_pairs}")
+                # create an empty dict so as to set as new cls attribute
+                cls_attr = {}
+
+                # loop through the key_value_pairs list & further parsing
+                for pair in key_value_pairs:
+                    if '=' in pair:
+                        try:
+                            # split into key value pairs based on the =
+                            key, value = pair.split('=')
+
+                            # Check if the key is not empty
+                            if key.strip():
+
+                                # check if _ is in key and replace with space
+                                if '_' in key:
+                                    key = key.replace('_', ' ')
+                                if '.' in value:
+                                    try:
+                                        # convert to float
+                                        value = float(value)
+                                    except Exception as e:
+                                        print(str(e))
+                                        pass
+                                elif value.isdigit() or (
+                                        value.startswith('-') and
+                                        value[1:].isdigit()
+                                        ):
+                                    # convert to an integer
+                                    value = int(value)
+                                elif value.startswith(
+                                        '"') and value.endswith('"'):
+                                    # remove all occurrence of double quotes
+                                    value = value.replace('"', '')
+                                # set key-value pair to the dictionary
+                                cls_attr[key] = value
+                            else:
+                                return
+                        except Exception as e:
+                            print(str(e))
+                            return
+                # create instance of the given class
+                instance = HBNBCommand.classes[cls_name]()
+
+                # set the new instance attributes
+                for key, value in cls_attr.items():
+                    setattr(instance, key, value)
+                storage.save()
+                print(instance.id)
 
     def help_create(self):
         """ Help information for the create method """

@@ -1,7 +1,12 @@
 #!/usr/bin/python3
 """ test cases for the place class"""
+import json
+import os
+import unittest
 from tests.test_models.test_base_model import test_basemodel
 from models.place import Place
+from models.engine.file_storage import FileStorage
+from console import HBNBCommand
 
 
 class test_Place(test_basemodel):
@@ -67,3 +72,34 @@ class test_Place(test_basemodel):
         """ tests place's amenity_ids"""
         new = self.value()
         self.assertEqual(type(new.amenity_ids), list)
+
+class test_create_place(unittest.TestCase):
+    def setUp(self):
+        self.file_storage = FileStorage()
+        self.file_path = 'test_file.json'
+        FileStorage._FileStorage__file_path = self.file_path
+        self.file_storage.reload()
+
+    def tearDown(self):
+        FileStorage._FileStorage__file_path = 'file.json'
+        try:
+            with open(self.file_path, 'r') as f:
+                data = json.load(f)
+            os.remove(self.file_path)
+        except FileNotFoundError:
+            pass
+    
+    def test_create_place(self):
+        hbnb_command = HBNBCommand()
+        file_storage = FileStorage()
+        command = "Place name='My_little_house'"
+        hbnb_command.do_create(command)
+        #check place
+        file_storage.reload()
+        total_places = file_storage.all(Place)
+        self.assertNotEqual(total_places, {}, "No Place objects found in storage after do_create function.")
+        #self.assertEqual(len(total_places), 1, "Incorrect number of places in the new Place object.")
+        #check details of created place
+        new_place = next(iter(total_places.values()), None)
+        self.assertIsNotNone(new_place, "New Place not found in storage.")
+        self.assertEqual(new_place.name.strip("'"), 'My_little_house', "Incorrect place name in the new Place object.")

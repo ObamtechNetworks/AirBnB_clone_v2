@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 """ test cases for the state classs"""
+import json
+import os
 import unittest
 from tests.test_models.test_base_model import test_basemodel
 from models.state import State
@@ -35,12 +37,15 @@ class test_create_state(unittest.TestCase):
             pass
     def test_create_state(self):
         hbnb_command = HBNBCommand()
-        create_args = "State name='California'"
-        hbnb_command.do_create(create_args)
         file_storage = FileStorage()
+        command = "State name='California'"
+        hbnb_command.do_create(command)
+        #check states
         file_storage.reload()
-        all_states = file_storage.all(State)
-        new_state = next(iter(all_states.values()))
-
+        total_states = file_storage.all(State)
+        self.assertNotEqual(total_states, {}, "No State objects found in storage after do_create function.")
+        self.assertEqual(len(total_states), 1, "Incorrect number of states in the new State object.")
+        #check details of created state
+        new_state = next(iter(total_states.values()), None)
         self.assertIsNotNone(new_state, "New State not found in storage.")
-        self.assertEqual(new_state.name, 'California', "Incorrect state name in the new State object.")
+        self.assertEqual(new_state.name.strip("'"), 'California', "Incorrect state name in the new State object.")

@@ -1,7 +1,14 @@
 #!/usr/bin/python3
 """ test cases for the place class"""
+import json
+import os
+import unittest
 from tests.test_models.test_base_model import test_basemodel
 from models.place import Place
+from models.engine.file_storage import FileStorage
+from console import HBNBCommand
+from unittest.mock import patch
+from io import StringIO
 
 
 class test_Place(test_basemodel):
@@ -67,3 +74,31 @@ class test_Place(test_basemodel):
         """ tests place's amenity_ids"""
         new = self.value()
         self.assertEqual(type(new.amenity_ids), list)
+
+class test_create_place(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            os.rename("file.json", "tmp")
+        except IOError:
+            pass
+        cls.storage = FileStorage()
+        cls.storage.reload()
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+
+    def test_create_place(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create Place"))
+            self.assertLess(0, len(output.getvalue().strip()))
+            test_str = "Place.{}".format(output.getvalue().strip())
+            self.assertIn(test_str, self.storage.all().keys())

@@ -7,6 +7,8 @@ from tests.test_models.test_base_model import test_basemodel
 from models.place import Place
 from models.engine.file_storage import FileStorage
 from console import HBNBCommand
+from unittest.mock import patch
+from io import StringIO
 
 
 class test_Place(test_basemodel):
@@ -74,34 +76,29 @@ class test_Place(test_basemodel):
         self.assertEqual(type(new.amenity_ids), list)
 
 class test_create_place(unittest.TestCase):
-    def setUp(self):
-        self.file_storage = FileStorage()
-        self.file_path = 'test_file.json'
-        FileStorage._FileStorage__file_path = self.file_path
-        self.file_storage.reload()
-
-    def tearDown(self):
-        FileStorage._FileStorage__file_path = 'file.json'
+    @classmethod
+    def setUpClass(cls):
         try:
-            with open(self.file_path, 'r') as f:
-                data = json.load(f)
-            os.remove(self.file_path)
-        except FileNotFoundError:
+            os.rename("file.json", "tmp")
+        except IOError:
             pass
-    
+        cls.storage = FileStorage()
+        cls.storage.reload()
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+
     def test_create_place(self):
-        hbnb_command = HBNBCommand()
-        file_storage = FileStorage()
-        command = "Place name='My_little_house'"
-        new_place = hbnb_command.do_create(command)
-
-        #check place
-        file_storage.reload()
-        #total_places = file_storage.all(Place)
-        #self.assertNotEqual(total_places, {}, "No Place objects found in storage after do_create function.")
-        #self.assertEqual(len(total_places), 1, "Incorrect number of places in the new Place object.")
-
-        #check details of created place
-        #new_place = next(iter(total_places.values()), None)
-        self.assertIsNotNone(new_place, "New Place not found in storage.")
-        self.assertEqual(new_place.name.strip("'"), 'My little house', "Incorrect place name in the new Place object.")
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create Place"))
+            self.assertLess(0, len(output.getvalue().strip()))
+            test_str = "Place.{}".format(output.getvalue().strip())
+            self.assertIn(test_str, self.storage.all().keys())

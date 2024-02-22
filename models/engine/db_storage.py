@@ -5,13 +5,23 @@ import os
 import sqlalchemy
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import scoped_session, sessionmaker
-from models.base_model import Base
+from models.base_model import BaseModel, Base
 from models.user import User
 from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
+
+cls_models = {
+        'User': User,
+        'State': State,
+        'City': City,
+        'Amenity': Amenity,
+        'Place': Place,
+        'Review': Review
+        }
+
 
 class DBStorage:
     """ class that setup the dbstorage engine """
@@ -36,8 +46,6 @@ class DBStorage:
                 sql_host,
                 sql_db)
 
-        # create engine
-        print("creating engine...")
         self.__engine = create_engine(URL, pool_pre_ping=True)
         
         # if test environmnet drop tables
@@ -53,14 +61,30 @@ class DBStorage:
             A dictionary with the format key:
             <class-name>.<object-id>, value = object
         """
-        result = {}
-        classes = [cls] if cls else [
-                User,
-                State,
-                City,
-                Amenity,
-                Place,
-                Review]
+        objects = {}
+        if cls:
+            cls = cls_models.get(cls)  # get the class object
+            if cls:
+                query_result = self.__session.query(cls).all()
+                print(query_result)
+                for obj in query_result:
+                    key = f"{obj.__class__.__name__}.{obj.id}"
+                    objects[key] = obj
+        else:
+            # quer all objects from all classes
+            for class_name in cls_models:
+                cls = cls_models.get(class_name)
+                query_result = self.__session.query(cls).all()
+                for obj in query_result:
+                    key = f"{obj.__class__.__name__}.{obj.id}"
+                    objects[key] = obj
+        return objects
+        '''
+        if cls:
+            classes = [cls_models[cls]]
+        else:
+            classes = cls_models.values()
+
         for class_to_query in classes:
             # retrieve all objects based on the given class
             objects = self.__session.query(class_to_query).all()
@@ -69,6 +93,7 @@ class DBStorage:
                 key = "{}.{}".format(obj.__class__.__name__, obj.id)
                 result[key] = obj
         return result
+        '''
 
     def new(self, obj):
         """ Adds the object to the current database session """
@@ -87,12 +112,18 @@ class DBStorage:
 
     def reload(self):
         """ creates all tables in the database """
-        print("creating tables")
         Base.metadata.create_all(self.__engine)
-        self.__session = scoped_session(
-                sessionmaker(
-                    bind=self.__engine,
-                    expire_on_commit=False))
+        session_factory = sessionmaker(
+                bind=self.__engine,
+                expire_on_commit=False)
+
+        Session = scoped_session(session_factory)
+        self.__session = Session()
+
+#        self.__session = scoped_session(
+#                sessionmaker(
+#                    bind=self.__engine,
+#                    expire_on_commit=False))
     def __del__(self):
         """ close the session when the object is destroyed """
         self.__session.close()

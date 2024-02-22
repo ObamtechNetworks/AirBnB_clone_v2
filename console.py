@@ -177,7 +177,8 @@ class HBNBCommand(cmd.Cmd):
                                 elif value.startswith(
                                         '"') and value.endswith('"'):
                                     # remove all occurrence of double quotes
-                                    value = value.replace('"', '').replace('_', ' ')
+                                    value = value.replace(
+                                            '"', '').replace('_', ' ')
                                 # set key-value pair to the dictionary
                                 cls_attr[key] = value
                             else:

@@ -177,7 +177,8 @@ class HBNBCommand(cmd.Cmd):
                                 elif value.startswith(
                                         '"') and value.endswith('"'):
                                     # remove all occurrence of double quotes
-                                    value = value.replace('"', '')
+                                    value = value.replace(
+                                            '"', '').replace('_', ' ')
                                 # set key-value pair to the dictionary
                                 cls_attr[key] = value
                             else:
@@ -255,7 +256,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del(storage.all()[key])
+            del storage.all()[key]
             storage.save()
         except KeyError:
             print("** no instance found **")

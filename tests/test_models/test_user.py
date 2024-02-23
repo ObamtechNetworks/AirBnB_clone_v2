@@ -2,6 +2,13 @@
 """ test cases for the user model"""
 from tests.test_models.test_base_model import test_basemodel
 from models.user import User
+import json
+import os
+import unittest
+from console import HBNBCommand
+from models.engine.file_storage import FileStorage
+from unittest.mock import patch
+from io import StringIO
 
 
 class test_User(test_basemodel):
@@ -32,3 +39,31 @@ class test_User(test_basemodel):
         """ tests user password"""
         new = self.value()
         self.assertEqual(type(new.password), str)
+
+class test_create_user(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            os.rename("file.json", "tmp")
+        except IOError:
+            pass
+        cls.storage = FileStorage()
+        cls.storage.reload()
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            os.remove("file.json")
+        except IOError:
+            pass
+        try:
+            os.rename("tmp", "file.json")
+        except IOError:
+            pass
+
+    def test_create_user(self):
+        with patch("sys.stdout", new=StringIO()) as output:
+            self.assertFalse(HBNBCommand().onecmd("create User"))
+            self.assertLess(0, len(output.getvalue().strip()))
+            test_str = "User.{}".format(output.getvalue().strip())
+            self.assertIn(test_str, self.storage.all().keys())

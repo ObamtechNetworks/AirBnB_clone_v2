@@ -1,32 +1,40 @@
 #!/usr/bin/python3
 """This module defines a base class for all models in our hbnb clone"""
 import uuid
+from os import getenv
 from datetime import datetime
 import sqlalchemy
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
 
-# create the Base object
-Base = declarative_base()
+if getenv("HBNB_TYPE_STORAGE") == 'db':
+    # create the Base object
+    Base = declarative_base()
+else:
+    Base = object
 
 
 class BaseModel:
     """A base class for all hbnb models"""
-    # create the required class attributes
-    id = Column(String(60), nullable=False, primary_key=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    if getenv("HBNB_TYPE_STORAGE") == 'db':
+        # create the required class attributes
+        id = Column(String(60), nullable=False, primary_key=True)
+        created_at = Column(
+                DateTime, default=datetime.utcnow, nullable=False)
+        updated_at = Column(
+                DateTime, default=datetime.utcnow, nullable=False)
 
     def __init__(self, *args, **kwargs):
         """Instatntiates a new model"""
         if not kwargs:
-            from models import storage
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
         else:
             for key, value in kwargs.items():
+                if key == '__class__':
+                    continue
                 setattr(self, key, value)
             if 'id' not in kwargs:
                 self.id = str(uuid.uuid4())
@@ -50,9 +58,9 @@ class BaseModel:
     def to_dict(self):
         """Convert instance into dict format"""
         dictionary = self.__dict__.copy()
-        dictionary.pop('_sa_instance_state', None)
         dictionary['created_at'] = self.created_at.isoformat()
         dictionary['updated_at'] = self.updated_at.isoformat()
+        dictionary.pop('_sa_instance_state', None)
         return dictionary
 
     def delete(self):

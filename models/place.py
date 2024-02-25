@@ -44,7 +44,7 @@ class Place(BaseModel, Base):
         super().__init__(*args, **kwargs)
 
     if getenv('HBNB_TYPE_STORAGE') != 'db':
-        @getter
+        @property
         def reviews(self):
             from models import storage
             review_instances = model.storage.all("Review").values()

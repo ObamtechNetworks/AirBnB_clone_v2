@@ -20,6 +20,10 @@ class Place(BaseModel, Base):
         price_by_night = Column(Integer, nullable=False, default=0)
         latitude = Column(Float, nullable=True)
         longitude = Column(Float, nullable=True)
+        reviews = relationship(
+            'Review',
+            backref='place',
+            cascade='all, delete, delete-orphan')
 
     else:
         city_id = ""
@@ -37,3 +41,13 @@ class Place(BaseModel, Base):
     def __init__(self, *args, **kwargs):
         """initializes place model"""
         super().__init__(*args, **kwargs)
+    
+    if getenv('HBNB_TYPE_STORAGE') != 'db':
+        @getter
+        def reviews(self):
+            review_instances = model.storage.all("Review").values()
+            review_list = []
+            for reveiw in review_instances:
+                if reveiw.place_id == self.id:
+                    review_list.append(review)
+            return review_list

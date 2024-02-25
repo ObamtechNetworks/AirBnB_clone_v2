@@ -14,7 +14,7 @@ from models.place import Place
 from models.review import Review
 
 cls_models = {
-        # 'User': User,
+        'User': User,
         'State': State,
         'City': City,
         # 'Amenity': Amenity,

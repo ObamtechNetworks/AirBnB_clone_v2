@@ -18,8 +18,8 @@ cls_models = {
         'State': State,
         'City': City,
         # 'Amenity': Amenity,
-        # 'Place': Place,
-        # 'Review': Review
+        'Place': Place,
+        'Review': Review
         }
 
 
@@ -35,7 +35,7 @@ class DBStorage:
         sql_user = os.getenv('HBNB_MYSQL_USER')
         sql_pwd = os.getenv('HBNB_MYSQL_PWD')
         sql_host = 'localhost'
-        sql_db  = os.getenv('HBNB_MYSQL_DB')
+        sql_db = os.getenv('HBNB_MYSQL_DB')
 
         # setup connection URL
         db_type = "mysql+mysqldb"
@@ -47,12 +47,11 @@ class DBStorage:
                 sql_db)
 
         self.__engine = create_engine(URL, pool_pre_ping=True)
-        
+
         # if test environmnet drop tables
         if os.getenv('HBNB_ENV') == 'test':
             # drop tables
             Base.metadata.drop_all(self.__engine)
-
 
     def all(self, cls=None):
         """ query on the current database session

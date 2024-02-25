@@ -2,8 +2,10 @@
 """ Console Module """
 import cmd
 import sys
+import os
+from datetime import datetime
 from models.base_model import BaseModel
-from models.__init__ import storage
+from models import storage
 from models.user import User
 from models.place import Place
 from models.state import State
@@ -14,13 +16,15 @@ from models.review import Review
 
 class HBNBCommand(cmd.Cmd):
     """ Contains the functionality for the HBNB console"""
-
     # determines prompt for interactive/non-interactive modes
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-               'BaseModel': BaseModel, 'User': User, 'Place': Place,
-               'State': State, 'City': City, 'Amenity': Amenity,
+               'State': State, 'City': City,
+               'BaseModel': BaseModel,
+               'User': User,
+               'Place': Place,
+               'Amenity': Amenity,
                'Review': Review
               }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
@@ -68,7 +72,6 @@ class HBNBCommand(cmd.Cmd):
                 _id = pline[0].replace('\"', '')
                 # possible bug here:
                 # empty quotes register as empty _id when replaced
-
                 # ADDED: if id is missing
                 if not _id:
                     pass
@@ -118,82 +121,69 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
+        """ Create an object of any class with given parameters"""
         if not args:
             print("** class name missing **")
             return
-        if len(args.split()) == 1:
-            # check if args is in class list
-            if args not in HBNBCommand.classes:
-                print("** class doesn't exist **")
-                return
-            else:
-                new_instance = HBNBCommand.classes[args]()
-                storage.save()
-                print(new_instance.id)
-                # storage.save()
-        else:
-            # split the args by spaces
-            params = args.split()
-            # extract the class from the list
-            cls_name = params[0]
-            # check if class is in class list before proceeding further
-            if cls_name not in HBNBCommand.classes:
-                print("** class doesn't exist **")
-                return
-            else:
-                # set other parts ready as key_value_pairs
-                key_value_pairs = params[1:]
-                # print(f"KEYVALUE PAIRS:   {key_value_pairs}")
-                # create an empty dict so as to set as new cls attribute
-                cls_attr = {}
+        # create empty dictionary
+        class_attr = {}
+        # unset attrs
+        unset_attrs = ('id', 'created_at', 'updated_at', '__class__')
 
-                # loop through the key_value_pairs list & further parsing
-                for pair in key_value_pairs:
-                    if '=' in pair:
+        # split the args & extract classname first arg after splitting
+        class_name, *params = args.split()
+        # check if classname is among the classes
+        if class_name not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
+
+        # Extract and process parameters
+        for param in params:
+            # try split key word argumnets suppose there's an '=' in it
+            try:
+                key, value = param.split('=')
+                # Replace underscores with spaces in the value
+                value = value.replace('_', ' ')
+
+                # Escape double quotes in values
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1].replace('"', '\\"')
+
+                    # Try to convert the value to float or int
+                    if '.' in value:
                         try:
-                            # split into key value pairs based on the =
-                            key, value = pair.split('=')
-
-                            # Check if the key is not empty
-                            if key.strip():
-
-                                # check if _ is in key and replace with space
-                                if '_' in key:
-                                    key = key.replace('_', ' ')
-                                if '.' in value:
-                                    try:
-                                        # convert to float
-                                        value = float(value)
-                                    except Exception as e:
-                                        print(str(e))
-                                        pass
-                                elif value.isdigit() or (
-                                        value.startswith('-') and
-                                        value[1:].isdigit()
-                                        ):
-                                    # convert to an integer
-                                    value = int(value)
-                                elif value.startswith(
-                                        '"') and value.endswith('"'):
-                                    # remove all occurrence of double quotes
-                                    value = value.replace(
-                                            '"', '').replace('_', ' ')
-                                # set key-value pair to the dictionary
-                                cls_attr[key] = value
-                            else:
-                                return
+                            # convert to float
+                            value = float(value)
                         except Exception as e:
-                            print(str(e))
-                            return
-                # create instance of the given class
-                instance = HBNBCommand.classes[cls_name]()
-
-                # set the new instance attributes
-                for key, value in cls_attr.items():
-                    setattr(instance, key, value)
-                storage.save()
-                print(instance.id)
+                            pass
+                    # check for regular digits
+                    if value.isdigit() or (
+                            value.startswith('-') and
+                            value[1:].isdigit()):
+                        # convert to an integer
+                        value = int(value)
+                # store key value to dictionary after parsing
+                class_attr[key] = value
+            except Exception as e:
+                pass
+        # check the storage type before setting attr and saving
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            if 'id' not in class_attr:
+                class_attr['id'] = str(uuid.uuid4())
+            if 'created_at' not in class_attr:
+                class_attr['created_at'] = str(datetime.now())
+            if 'updated_at' not in class_attr:
+                class_attr['updated_at'] = str(datetime.now())
+            new_instance = HBNBCommand.classes[class_name](**class_attr)
+            new_instance.save()
+            print(new_instance.id)
+        else:  # if storage type === file storage
+            new_instance = HBNBCommand.classes[class_name]()
+            for key, value in class_attr.items():
+                if key not in unset_attrs:
+                    setattr(new_instance, key, value)
+            new_instance.save()
+            print(new_instance.id)
 
     def help_create(self):
         """ Help information for the create method """
@@ -275,7 +265,7 @@ class HBNBCommand(cmd.Cmd):
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage.all(args).items():
+            for k, v in storage.all().items():
                 if k.split('.')[0] == args:
                     print_list.append(str(v))
         else:

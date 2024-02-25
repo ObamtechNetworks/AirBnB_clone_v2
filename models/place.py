@@ -4,6 +4,7 @@ from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, Integer, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from os import getenv
+from models.review import Review
 
 
 class Place(BaseModel, Base):
@@ -41,10 +42,11 @@ class Place(BaseModel, Base):
     def __init__(self, *args, **kwargs):
         """initializes place model"""
         super().__init__(*args, **kwargs)
-    
+
     if getenv('HBNB_TYPE_STORAGE') != 'db':
         @getter
         def reviews(self):
+            from models import storage
             review_instances = model.storage.all("Review").values()
             review_list = []
             for reveiw in review_instances:

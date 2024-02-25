@@ -17,9 +17,9 @@ cls_models = {
         'User': User,
         'State': State,
         'City': City,
+        'Review': Review,
+        'Place': Place
         # 'Amenity': Amenity,
-        'Place': Place,
-        'Review': Review
         }
 
 

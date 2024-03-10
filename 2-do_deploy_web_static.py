@@ -51,7 +51,7 @@ def do_deploy(archive_path):
     run(f'sudo rm -rf {path_to_cur_release}')
 
     # create a symbolic link to the new release without extension
-    run(f'ln -s {path_to_decmp_archive}{filename_no_ext} \
+    run(f'sudo ln -s {path_to_decmp_archive}{filename_no_ext} \
             {path_to_cur_release}')
 
     # restart nginx

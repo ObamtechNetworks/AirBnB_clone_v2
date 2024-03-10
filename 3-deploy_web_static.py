@@ -2,7 +2,7 @@
 """This is a fabric script that does a full deployment to a webserver
 """
 
-from fabric.api import env, put, cd, run
+from fabric.api import env, put, cd, run, local
 import os  # for file path checking
 from datetime import datetime
 
@@ -94,6 +94,7 @@ def deploy():
     try:
         archive_path = do_pack()
     except Exception as e:
+        print((str(e)))
         return False
 
     # Return False if no archive has been created

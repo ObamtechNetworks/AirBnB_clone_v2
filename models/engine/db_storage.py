@@ -107,3 +107,7 @@ class DBStorage:
     def __del__(self):
         """ close the session when the object is destroyed """
         self.__session.close()
+    
+    def close(self):
+        """calls remove method to remove session"""
+        self.__session.remove()

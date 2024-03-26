@@ -29,7 +29,7 @@ class State(BaseModel, Base):
         @property
         def cities(self):
             """ Getter for cities """
-            from models.storage import storage
+            from models import storage
             city_instances = [
                     city for city in storage.all('City').values()
                     if city.state_id == self.id]

@@ -1,8 +1,17 @@
 #!/usr/bin/python3
-""" State Module for HBNB project """
-from models.base_model import BaseModel
+""" Amenities Module for HBNB project """
+from models.base_model import BaseModel, Base
+from sqlalchemy import String, Column
+from sqlalchemy.orm import relationship
+from models.place import Place
 
 
-class Amenity(BaseModel):
+class Amenity(BaseModel, Base):
     """ models for all amenities """
-    name = ""
+    __tablename__ = 'amenities'
+    name = Column(String(128), nullable=False)
+    # establish a many to many relationship
+    place_amenities = relationship('Place',
+                                   secondary='place_amenity',
+                                   backref='places_amenities',
+                                   overlaps="amenities")

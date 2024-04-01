@@ -3,6 +3,12 @@
 
 
 import os
+from models.city import City
+from models.state import State
+from models.amenity import Amenity
+from models.review import Review
+from models.place import Place
+from models.user import User
 
 
 storage_type = os.getenv("HBNB_TYPE_STORAGE")

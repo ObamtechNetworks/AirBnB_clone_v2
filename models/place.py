@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
 from models.base_model import BaseModel, Base
-from sqlalchemy import Column, String, Integer, ForeignKey, Float
+from sqlalchemy import Column, String, Integer, ForeignKey, Float, Table
 from sqlalchemy.orm import relationship
 from os import getenv
 from models.review import Review
@@ -9,6 +9,17 @@ from models.review import Review
 
 class Place(BaseModel, Base):
     """ A place to stay """
+    # define instance of the association table for many-to-many relnshp
+    place_amenity = Table('place_amenity', Base.metadata,
+                          Column('place_id', String(60),
+                                 ForeignKey('places.id',
+                                            ondelete='CASCADE'),
+                                 primary_key=True, nullable=False),
+                          Column('amenity_id', String(60),
+                                 ForeignKey('amenities.id',
+                                            ondelete='CASCADE'),
+                                 primary_key=True, nullable=False))
+
     if getenv('HBNB_TYPE_STORAGE') == 'db':
         __tablename__ = 'places'
         city_id = Column(String(60), ForeignKey('cities.id'), nullable=False)
@@ -26,6 +37,10 @@ class Place(BaseModel, Base):
             backref='place',
             cascade='all, delete, delete-orphan')
 
+        amenities = relationship("Amenity",
+                                 secondary="place_amenity",
+                                 viewonly=False,
+                                 overlaps="amenities")
     else:
         city_id = ""
         user_id = ""
@@ -39,13 +54,10 @@ class Place(BaseModel, Base):
         longitude = 0.0
         amenity_ids = []
 
-    def __init__(self, *args, **kwargs):
-        """initializes place model"""
-        super().__init__(*args, **kwargs)
-
     if getenv('HBNB_TYPE_STORAGE') != 'db':
         @property
         def reviews(self):
+            """Getter for reviews"""
             from models import storage
             review_instances = model.storage.all("Review").values()
             review_list = []
@@ -53,3 +65,17 @@ class Place(BaseModel, Base):
                 if reveiw.place_id == self.id:
                     review_list.append(review)
             return review_list
+
+        @property
+        def amenities(self):
+            """Getter for amenities"""
+            return [
+                    amenity for amenity in
+                    models.storage.all(Amenity) if
+                    amenity.id in self.amenity_ids]
+
+        @amenities.setter
+        def amenities(self, obj):
+            """setter attribute amenities"""
+            if isinstance(obj, Amenity):
+                self.amenity_ids.append(obj.id)

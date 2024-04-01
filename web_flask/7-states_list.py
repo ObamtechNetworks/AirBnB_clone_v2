@@ -18,7 +18,7 @@ Routes
 # import modules
 from flask import Flask, render_template
 from markupsafe import escape
-from models import stoarge
+from models import storage
 
 app = Flask(__name__)
 
@@ -75,7 +75,7 @@ def render_odd_or_even(n=None):
 def display_states_list():
     """Displays a list of states"""
     states = storage.all("State").values()
-    sorted_states = sort(states, key=lambda x: x.name)
+    sorted_states = sorted(states, key=lambda x: x.name)
     return render_template("7-states_list.html", states=sorted_states)
 
 

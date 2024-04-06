@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 """
 A script that starts a flask web application
 Web application must be listening on 0.0.0.0, port 5000
@@ -19,6 +20,7 @@ Routes
 from flask import Flask, render_template
 from markupsafe import escape
 from models import storage
+
 
 app = Flask(__name__)
 

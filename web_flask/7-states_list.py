@@ -1,12 +1,11 @@
 #!/usr/bin/python3
 """A script that starts a flask web application"""
-
-# import modules
 from flask import Flask, render_template
 from models import storage
 
 
 app = Flask(__name__)
+
 
 
 @app.route("/states_list", strict_slashes=False)
@@ -17,10 +16,12 @@ def display_states_list():
     return render_template("7-states_list.html", states=sorted_states)
 
 
+
 @app.teardown_appcontext
 def teardown_db(exception):
     """Removes the current sqlalchemy session after each request"""
     storage.close()
+
 
 
 if __name__ == "__main__":

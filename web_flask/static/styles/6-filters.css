@@ -31,7 +31,7 @@
 .popover {
 	list-style-type: none;
 	display: none;
-	background-color: #FAFAFA;
+	background-color: #fafafa;
 	width: 100%;
 	margin-left: -1px;
 	margin-top: 8px;
@@ -43,13 +43,13 @@
 	max-height: 300px; /* Set max height*/
 }
 
-.locations:hover .popover {
+.locations:hover .popover, .amenities:hover .popover {
 	display: inline-block;
 }
 
-.amenities:hover .popover {
+/* .amenities:hover .popover {
 	display: inline-block;
-}
+} */
 
 ul {
 	list-style-type: none;
@@ -100,3 +100,5 @@ button {
 button:hover {
 	opacity: 90%;
 }
+
+

@@ -63,7 +63,7 @@ def render_a_template(n=None):
         return render_template("5-number.html", n=n)
 
 
-@app.route("//number_odd_or_even/<int:n>", strict_slashes=False)
+@app.route("/number_odd_or_even/<int:n>", strict_slashes=False)
 def render_odd_or_even(n=None):
     """render an html template if n is an integer either even or odd"""
     if isinstance(n, int) and n is not None:
